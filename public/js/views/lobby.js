@@ -70,6 +70,17 @@ export function updateLobby(state) {
   }
 }
 
+export function populateThemes(themes) {
+  const select = document.getElementById('setting-theme');
+  select.innerHTML = '';
+  for (const theme of themes) {
+    const opt = document.createElement('option');
+    opt.value = theme;
+    opt.textContent = theme.charAt(0).toUpperCase() + theme.slice(1);
+    select.appendChild(opt);
+  }
+}
+
 export function updateSettings(settings) {
   document.getElementById('setting-theme').value = settings.theme || 'animals';
   document.getElementById('setting-clue-list').value = settings.clueList || 'general';

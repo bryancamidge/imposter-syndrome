@@ -59,6 +59,7 @@ class GameRoom {
       players: this.players.toClientArray(),
       hostId: this.players.getHostId(),
       settings: this.settings,
+      themes: this.wordBank.getThemes(),
     });
 
     socket.to(this.roomCode).emit('room:playerJoined', {

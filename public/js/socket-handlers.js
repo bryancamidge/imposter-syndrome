@@ -1,5 +1,5 @@
 import { showView, startTimer, stopTimer } from './ui-utils.js';
-import { updateLobby, updateSettings } from './views/lobby.js';
+import { updateLobby, updateSettings, populateThemes } from './views/lobby.js';
 import { showClueRound, showClueCard } from './views/clue.js';
 import { showGuessingPhase, showGuessSubmitted } from './views/guessing.js';
 import { showMatchingPhase, showMatchSubmitted } from './views/matching.js';
@@ -15,6 +15,7 @@ export function registerSocketHandlers(state) {
     state.players = data.players;
     state.hostId = data.hostId;
     state.isHost = data.playerId === data.hostId;
+    if (data.themes) populateThemes(data.themes);
     if (data.settings) updateSettings(data.settings);
     updateLobby(state);
     showView('view-lobby');
