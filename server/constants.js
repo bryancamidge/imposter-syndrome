@@ -1,0 +1,18 @@
+module.exports = {
+  MIN_PLAYERS: 3,
+  MAX_PLAYERS: 12,
+
+  // Configurable defaults (host can change in lobby)
+  DEFAULT_HAND_SIZE: 5,
+  DEFAULT_CLUE_ROUNDS: 1,
+  DEFAULT_DECOY_COUNT: 3,
+  DEFAULT_POINTS_SELF_GUESS: 3,
+  DEFAULT_POINTS_MATCH: 1,
+  DEFAULT_PENALTY_MISIDENTIFIED: -1,
+
+  // Timer defaults (seconds, 0 = disabled)
+  DEFAULT_CLUE_TIMER: 60,
+  DEFAULT_GUESS_TIMER: 90,
+  DEFAULT_MATCH_TIMER: 120,
+  DISCONNECT_GRACE_SECONDS: 30,
+};

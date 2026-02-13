@@ -1,0 +1,557 @@
+:root {
+  --bg: #1a1a2e;
+  --bg-card: #16213e;
+  --bg-hover: #0f3460;
+  --accent: #e94560;
+  --accent-hover: #ff6b81;
+  --text: #eee;
+  --text-dim: #888;
+  --success: #4ecdc4;
+  --warning: #f39c12;
+  --error: #e74c3c;
+  --border: #333;
+  --radius: 8px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+}
+
+#app {
+  max-width: 600px;
+  width: 100%;
+}
+
+/* Views */
+.view {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.view.active {
+  display: flex;
+}
+
+/* Typography */
+h1 {
+  font-size: 2rem;
+  color: var(--accent);
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.1rem;
+  color: var(--text-dim);
+}
+
+.subtitle {
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+/* Forms */
+.form-group {
+  width: 100%;
+  max-width: 300px;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 1rem;
+  outline: none;
+}
+
+input:focus, select:focus {
+  border-color: var(--accent);
+}
+
+input[type="number"] {
+  width: 80px;
+}
+
+/* Buttons */
+.btn {
+  padding: 10px 24px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.btn-secondary {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #1a4a7a;
+}
+
+.btn-small {
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.button-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Divider */
+.divider {
+  width: 100%;
+  max-width: 300px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-dim);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--border);
+}
+
+/* Error */
+.error {
+  color: var(--error);
+  font-size: 0.9rem;
+  min-height: 1.2em;
+}
+
+/* Room Code */
+.room-code {
+  font-family: monospace;
+  font-size: 1.8rem;
+  letter-spacing: 4px;
+  color: var(--accent);
+}
+
+/* Player List */
+.player-list {
+  list-style: none;
+  width: 100%;
+  max-width: 400px;
+}
+
+.player-list li {
+  padding: 8px 14px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-list li .host-badge {
+  background: var(--accent);
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Settings Panel */
+.settings-panel {
+  width: 100%;
+  max-width: 400px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: left;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.setting-row label {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+.settings-panel select,
+.settings-panel input[type="number"] {
+  width: 100px;
+}
+
+.status-text {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+/* Timer */
+.timer {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: var(--warning);
+  font-family: monospace;
+}
+
+.timer.urgent {
+  color: var(--error);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Progress */
+.progress-text {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+/* Word Display */
+.word-display {
+  font-size: 2rem;
+  font-weight: bold;
+  padding: 20px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 400px;
+}
+
+.word-display.hidden-word {
+  color: var(--accent);
+}
+
+.word-display.your-word {
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.instruction {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+/* Card Hand */
+.hand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  width: 100%;
+  max-width: 500px;
+}
+
+.card {
+  padding: 10px 16px;
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+
+.card:hover {
+  border-color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.card.selected {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+}
+
+.card.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Submission Status */
+.submission-status {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.submission-status .player-status {
+  padding: 4px 10px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  font-size: 0.8rem;
+}
+
+.submission-status .player-status.submitted {
+  background: var(--success);
+  color: #111;
+}
+
+/* Clue Results */
+.clue-results {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+.clue-results .clue-card {
+  padding: 8px 14px;
+  background: var(--bg-hover);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+}
+
+/* Your Clues (guessing phase) */
+.your-clues {
+  width: 100%;
+  max-width: 400px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+.your-clues h4 {
+  margin-bottom: 8px;
+  color: var(--text-dim);
+}
+
+.your-clues .clue-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Word Options (guessing phase) */
+.word-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  width: 100%;
+  max-width: 500px;
+}
+
+/* Revealed Clues (matching phase) */
+.revealed-clues {
+  width: 100%;
+  text-align: left;
+}
+
+.revealed-clues .clue-word-section {
+  margin-bottom: 16px;
+}
+
+.revealed-clues .clue-word-header {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--warning);
+  padding: 6px 0 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.revealed-clues .clue-givers-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.revealed-clues .clue-column {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 10px;
+  min-width: 120px;
+  flex: 1 1 120px;
+}
+
+.revealed-clues .clue-column-header {
+  font-weight: bold;
+  color: var(--accent);
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.revealed-clues .clue-entry {
+  padding: 2px 0;
+  font-size: 0.85rem;
+  color: var(--success);
+}
+
+/* Match Grid */
+.match-grid {
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.match-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+}
+
+.match-row .player-name {
+  font-weight: bold;
+}
+
+.match-row select {
+  width: 150px;
+}
+
+/* Word Reveal (results) */
+.word-reveal {
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.word-reveal .reveal-entry {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 14px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+}
+
+/* Breakdown */
+.breakdown {
+  width: 100%;
+  max-width: 500px;
+  text-align: left;
+  margin-bottom: 10px;
+}
+
+.breakdown h4 {
+  margin-bottom: 6px;
+  color: var(--text-dim);
+}
+
+.breakdown .result-entry {
+  padding: 4px 14px;
+  font-size: 0.9rem;
+}
+
+.breakdown .correct {
+  color: var(--success);
+}
+
+.breakdown .incorrect {
+  color: var(--error);
+}
+
+/* Result tables (self-guess, matches) */
+.result-table,
+.scoreboard {
+  width: 100%;
+  max-width: 500px;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+.result-table th,
+.result-table td,
+.scoreboard th,
+.scoreboard td {
+  padding: 8px 12px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.result-table th,
+.scoreboard th {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.result-table tr.correct td {
+  color: var(--success);
+}
+
+.result-table tr.incorrect td {
+  color: var(--error);
+}
+
+.scoreboard tr:first-child td {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  body { padding: 10px; }
+  h1 { font-size: 1.6rem; }
+  .room-code { font-size: 1.4rem; }
+  .word-display { font-size: 1.5rem; }
+  .card { padding: 8px 12px; font-size: 0.85rem; }
+  .settings-panel { padding: 10px; }
+  .setting-row { flex-direction: column; gap: 4px; align-items: flex-start; }
+  .settings-panel select,
+  .settings-panel input[type="number"] { width: 100%; }
+}

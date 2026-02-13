@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Imposter Syndrome</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- VIEW: Welcome -->
+    <section id="view-welcome" class="view active">
+      <h1>Imposter Syndrome</h1>
+      <p class="subtitle">The word guessing party game</p>
+      <div class="form-group">
+        <input id="player-name" type="text" placeholder="Your name" maxlength="16" autocomplete="off">
+      </div>
+      <button id="btn-create" class="btn btn-primary">Create Game</button>
+      <div class="divider"><span>or</span></div>
+      <div class="form-group">
+        <input id="room-code-input" type="text" placeholder="Room code" maxlength="4" autocomplete="off">
+      </div>
+      <button id="btn-join" class="btn btn-secondary">Join Game</button>
+      <p id="error-msg" class="error"></p>
+    </section>
+
+    <!-- VIEW: Lobby -->
+    <section id="view-lobby" class="view">
+      <h2>Room: <span id="room-code-display" class="room-code"></span></h2>
+      <button id="btn-copy-code" class="btn btn-small">Copy Code</button>
+      <div id="lobby-settings" class="settings-panel">
+        <h3>Game Settings</h3>
+        <div class="setting-row">
+          <label for="setting-theme">Theme</label>
+          <select id="setting-theme">
+            <option value="animals">Animals</option>
+            <option value="food">Food</option>
+            <option value="places">Places</option>
+            <option value="objects">Objects</option>
+            <option value="professions">Professions</option>
+            <option value="activities">Activities</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label for="setting-clue-list">Clue List</label>
+          <select id="setting-clue-list">
+            <option value="general">General</option>
+            <option value="fantasy">Fantasy</option>
+            <option value="everyday">Everyday</option>
+            <option value="science">Science</option>
+            <option value="emotional">Emotional</option>
+            <option value="adjectives">Adjectives</option>
+            <option value="adverbs">Adverbs</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label for="setting-hand-size">Hand Size</label>
+          <input id="setting-hand-size" type="number" min="3" max="15" value="5">
+        </div>
+        <div class="setting-row">
+          <label for="setting-clue-rounds">Clue Rounds</label>
+          <input id="setting-clue-rounds" type="number" min="1" max="5" value="1">
+        </div>
+        <div class="setting-row">
+          <label for="setting-decoy-count">Decoy Words</label>
+          <input id="setting-decoy-count" type="number" min="1" max="10" value="3">
+        </div>
+        <div class="setting-row">
+          <label for="setting-points-self">Points: Guess Own Word</label>
+          <input id="setting-points-self" type="number" min="0" max="10" value="3">
+        </div>
+        <div class="setting-row">
+          <label for="setting-points-match">Points: Correct Match</label>
+          <input id="setting-points-match" type="number" min="0" max="10" value="1">
+        </div>
+        <div class="setting-row">
+          <label for="setting-penalty">Penalty: Misidentified</label>
+          <input id="setting-penalty" type="number" min="-10" max="0" value="-1">
+        </div>
+        <div class="setting-row">
+          <label for="setting-clue-timer">Clue Timer (sec, 0=off)</label>
+          <input id="setting-clue-timer" type="number" min="0" max="300" value="60">
+        </div>
+        <div class="setting-row">
+          <label for="setting-guess-timer">Guess Timer (sec, 0=off)</label>
+          <input id="setting-guess-timer" type="number" min="0" max="300" value="90">
+        </div>
+        <div class="setting-row">
+          <label for="setting-match-timer">Match Timer (sec, 0=off)</label>
+          <input id="setting-match-timer" type="number" min="0" max="300" value="120">
+        </div>
+      </div>
+      <h3>Players <span id="player-count"></span></h3>
+      <ul id="player-list" class="player-list"></ul>
+      <button id="btn-start" class="btn btn-primary" disabled>Start Game</button>
+      <p id="lobby-status" class="status-text"></p>
+    </section>
+
+    <!-- VIEW: Clue -->
+    <section id="view-clue" class="view">
+      <div id="clue-header">
+        <p id="clue-progress" class="progress-text"></p>
+        <p id="clue-timer" class="timer"></p>
+      </div>
+      <div id="word-display" class="word-display"></div>
+      <p id="clue-instruction" class="instruction"></p>
+      <div id="hand-container" class="hand"></div>
+      <button id="btn-submit-clue" class="btn btn-primary" disabled>Submit Clue</button>
+      <p id="clue-counter" class="status-text"></p>
+      <div id="clue-results" class="clue-results"></div>
+    </section>
+
+    <!-- VIEW: Guessing -->
+    <section id="view-guessing" class="view">
+      <h2>Guess Your Word</h2>
+      <p id="guess-timer" class="timer"></p>
+      <p class="instruction">Based on the clues given about your word, which one is it?</p>
+      <div id="your-clues" class="your-clues"></div>
+      <div id="guess-options" class="word-options"></div>
+      <button id="btn-submit-guess" class="btn btn-primary" disabled>Submit Guess</button>
+      <div id="guess-submissions" class="submission-status"></div>
+    </section>
+
+    <!-- VIEW: Matching -->
+    <section id="view-matching" class="view">
+      <h2>Match Words to Players</h2>
+      <p id="match-timer" class="timer"></p>
+      <p class="instruction">Now that clues are revealed, match each player to their hidden word.</p>
+      <div id="revealed-clues" class="revealed-clues"></div>
+      <div id="match-grid" class="match-grid"></div>
+      <button id="btn-submit-match" class="btn btn-primary" disabled>Submit Matches</button>
+      <div id="match-submissions" class="submission-status"></div>
+    </section>
+
+    <!-- VIEW: Results -->
+    <section id="view-results" class="view">
+      <h2>Results</h2>
+      <div id="word-reveal" class="word-reveal"></div>
+      <div id="guess-breakdown" class="breakdown"></div>
+      <div id="match-breakdown" class="breakdown"></div>
+      <h3>Scoreboard</h3>
+      <table id="scoreboard" class="scoreboard">
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Self Guess</th>
+            <th>Matches</th>
+            <th>Penalties</th>
+            <th>Round</th>
+            <th>Total</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="results-buttons" class="button-row">
+        <button id="btn-play-again" class="btn btn-primary">Play Again</button>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>
