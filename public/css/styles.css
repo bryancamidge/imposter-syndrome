@@ -19,6 +19,34 @@
   box-sizing: border-box;
 }
 
+/* Splash screen */
+#splash {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+#splash h1 {
+  font-size: 2.5rem;
+  color: var(--accent);
+}
+
+#splash-counter {
+  font-family: 'Courier New', monospace;
+  font-size: 1.5rem;
+  color: var(--text-dim);
+}
+
+#splash.hidden {
+  display: none;
+}
+
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: var(--bg);
