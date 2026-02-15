@@ -1,6 +1,7 @@
 import { renderSubmissionStatus, startTimer, stopTimer } from '../ui-utils.js';
 
-let matchSelections = {};
+let matchSelections = {};  // { playerId: word }
+let expectedCount = 0;
 
 export function initMatching(state) {
   const btnSubmit = document.getElementById('btn-submit-match');
@@ -8,15 +9,30 @@ export function initMatching(state) {
   btnSubmit.addEventListener('click', () => {
     state.socket.emit('match:submit', { matches: matchSelections });
     btnSubmit.disabled = true;
-    disableSelects();
+    document.querySelectorAll('.match-btn').forEach(b => b.classList.add('disabled'));
   });
 }
 
 export function showMatchingPhase(state, data) {
   matchSelections = {};
 
-  // Group revealed clues by target word (preserves clue-phase order),
-  // then sub-group by giver name within each word
+  // Build a set of other player IDs (valid match targets)
+  const otherPlayers = data.players.filter(p => p.id !== state.playerId);
+  const otherPlayerIds = new Set(otherPlayers.map(p => p.id));
+  expectedCount = data.hiddenWords.length;
+
+  // Build a lookup: playerName -> playerId from revealedClues
+  const nameToId = {};
+  data.revealedClues.forEach(entry => {
+    nameToId[entry.playerName] = entry.playerId;
+  });
+
+  // Find the current player's own hidden word from revealed clues
+  const ownWord = data.revealedClues.find(
+    entry => entry.targetPlayerId === state.playerId
+  )?.targetWord;
+
+  // Group revealed clues by target word, then by giver name
   const cluesByWord = new Map();
   data.revealedClues.forEach(entry => {
     if (!cluesByWord.has(entry.targetWord)) {
@@ -29,25 +45,58 @@ export function showMatchingPhase(state, data) {
     givers.get(entry.playerName).push(entry.clue);
   });
 
-  // Render: for each hidden word, a section with giver columns side by side
+  // Partition into own word and other words
+  const ownWordEntries = [];
+  const otherWordEntries = [];
+  for (const [word, givers] of cluesByWord) {
+    if (word === ownWord) {
+      ownWordEntries.push([word, givers]);
+    } else {
+      otherWordEntries.push([word, givers]);
+    }
+  }
+
+  // Render clue sections with clickable buttons for other players
   const cluesContainer = document.getElementById('revealed-clues');
   cluesContainer.innerHTML = '';
 
-  for (const [word, givers] of cluesByWord) {
+  // Helper to render a word section
+  const renderWordSection = (word, givers, isOwn) => {
     const section = document.createElement('div');
-    section.className = 'clue-word-section';
+    section.className = 'clue-word-section' + (isOwn ? ' own-word-section' : '');
 
     const wordHeader = document.createElement('div');
     wordHeader.className = 'clue-word-header';
-    wordHeader.textContent = word;
+    wordHeader.textContent = isOwn ? `${word} (Your Word)` : word;
     section.appendChild(wordHeader);
 
-    const row = document.createElement('div');
-    row.className = 'clue-givers-row';
-
+    // Partition givers into own clues and others
+    const ownGivers = [];
+    const otherGivers = [];
     for (const [giverName, clues] of givers) {
-      const column = document.createElement('div');
-      column.className = 'clue-column';
+      const giverId = nameToId[giverName];
+      if (!otherPlayerIds.has(giverId)) {
+        ownGivers.push([giverName, clues]);
+      } else {
+        otherGivers.push([giverName, clues]);
+      }
+    }
+
+    // Helper to build a clue column element
+    const buildColumn = (giverName, clues, isClickable, isSelf) => {
+      const isInactiveUnderOwn = isOwn && !isSelf;
+      const column = document.createElement(isClickable ? 'button' : 'div');
+      column.className = 'clue-column'
+        + (isClickable ? ' match-btn' : '')
+        + (isSelf ? ' own-clue-column' : '')
+        + (isInactiveUnderOwn ? ' own-word-inactive' : '');
+
+      if (isClickable) {
+        column.type = 'button';
+        column.dataset.playerId = nameToId[giverName];
+        column.dataset.word = word;
+        column.addEventListener('click', () => handleMatchClick(nameToId[giverName], word));
+      }
 
       const header = document.createElement('div');
       header.className = 'clue-column-header';
@@ -61,51 +110,45 @@ export function showMatchingPhase(state, data) {
         column.appendChild(div);
       });
 
-      row.appendChild(column);
+      return column;
+    };
+
+    // Sort other players alphabetically for consistent vertical alignment
+    otherGivers.sort((a, b) => a[0].localeCompare(b[0]));
+
+    // Render all in one row: own clue first (left), then others alphabetically
+    const row = document.createElement('div');
+    row.className = 'clue-givers-row';
+
+    for (const [giverName, clues] of ownGivers) {
+      row.appendChild(buildColumn(giverName, clues, false, true));
+    }
+    for (const [giverName, clues] of otherGivers) {
+      const isClickable = !isOwn;
+      row.appendChild(buildColumn(giverName, clues, isClickable, false));
     }
 
     section.appendChild(row);
-    cluesContainer.appendChild(section);
+    return section;
+  };
+
+  // Render own word first
+  for (const [word, givers] of ownWordEntries) {
+    cluesContainer.appendChild(renderWordSection(word, givers, true));
   }
 
-  // Build match grid: for each other player, pick their word
-  const grid = document.getElementById('match-grid');
-  grid.innerHTML = '';
+  // Add separator if there are both own and other entries
+  if (ownWordEntries.length > 0 && otherWordEntries.length > 0) {
+    const separator = document.createElement('div');
+    separator.className = 'match-section-divider';
+    separator.textContent = 'Other Players';
+    cluesContainer.appendChild(separator);
+  }
 
-  const otherPlayers = data.players.filter(p => p.id !== state.playerId);
-
-  otherPlayers.forEach(player => {
-    const row = document.createElement('div');
-    row.className = 'match-row';
-
-    const nameSpan = document.createElement('span');
-    nameSpan.className = 'player-name';
-    nameSpan.textContent = player.name;
-
-    const select = document.createElement('select');
-    select.dataset.playerId = player.id;
-
-    const defaultOption = document.createElement('option');
-    defaultOption.value = '';
-    defaultOption.textContent = '-- pick word --';
-    select.appendChild(defaultOption);
-
-    data.hiddenWords.forEach(word => {
-      const option = document.createElement('option');
-      option.value = word;
-      option.textContent = word;
-      select.appendChild(option);
-    });
-
-    select.addEventListener('change', () => {
-      matchSelections[player.id] = select.value;
-      updateSubmitButton(otherPlayers.length);
-    });
-
-    row.appendChild(nameSpan);
-    row.appendChild(select);
-    grid.appendChild(row);
-  });
+  // Render other words
+  for (const [word, givers] of otherWordEntries) {
+    cluesContainer.appendChild(renderWordSection(word, givers, false));
+  }
 
   document.getElementById('btn-submit-match').disabled = true;
 
@@ -113,13 +156,52 @@ export function showMatchingPhase(state, data) {
   renderSubmissionStatus('match-submissions', state.players, state.matchSubmitted);
 }
 
-function updateSubmitButton(expectedCount) {
-  const filledCount = Object.values(matchSelections).filter(v => v).length;
-  document.getElementById('btn-submit-match').disabled = filledCount < expectedCount;
+function handleMatchClick(playerId, word) {
+  // If this player was already assigned to a different word, clear that
+  const prevWord = Object.entries(matchSelections).find(
+    ([pid, w]) => pid === playerId && w !== word
+  );
+  if (prevWord) {
+    delete matchSelections[playerId];
+    // Deselect the old button
+    const oldBtn = document.querySelector(
+      `.match-btn[data-player-id="${playerId}"][data-word="${prevWord[1]}"]`
+    );
+    if (oldBtn) oldBtn.classList.remove('selected');
+  }
+
+  // If a different player was already selected for this word, clear that
+  const prevPlayer = Object.entries(matchSelections).find(
+    ([pid, w]) => w === word && pid !== playerId
+  );
+  if (prevPlayer) {
+    delete matchSelections[prevPlayer[0]];
+    const oldBtn = document.querySelector(
+      `.match-btn[data-player-id="${prevPlayer[0]}"][data-word="${word}"]`
+    );
+    if (oldBtn) oldBtn.classList.remove('selected');
+  }
+
+  // Toggle current selection
+  const btn = document.querySelector(
+    `.match-btn[data-player-id="${playerId}"][data-word="${word}"]`
+  );
+  if (matchSelections[playerId] === word) {
+    // Deselect
+    delete matchSelections[playerId];
+    if (btn) btn.classList.remove('selected');
+  } else {
+    // Select
+    matchSelections[playerId] = word;
+    if (btn) btn.classList.add('selected');
+  }
+
+  updateSubmitButton();
 }
 
-function disableSelects() {
-  document.querySelectorAll('#match-grid select').forEach(s => s.disabled = true);
+function updateSubmitButton() {
+  const filledCount = Object.keys(matchSelections).length;
+  document.getElementById('btn-submit-match').disabled = filledCount < expectedCount;
 }
 
 export function showMatchSubmitted(state, playerId) {

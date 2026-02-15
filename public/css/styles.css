@@ -445,7 +445,7 @@ input[type="number"] {
   border-radius: var(--radius);
   padding: 10px;
   min-width: 120px;
-  flex: 1 1 120px;
+  flex: 1 1 0;
 }
 
 .revealed-clues .clue-column-header {
@@ -463,30 +463,76 @@ input[type="number"] {
   color: var(--success);
 }
 
-/* Match Grid */
-.match-grid {
-  width: 100%;
-  max-width: 500px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+/* Own Word Section (matching phase) */
+.revealed-clues .own-word-section .clue-word-header {
+  color: var(--accent);
 }
 
-.match-row {
+/* Own Clue Column (your clues, per word) */
+.revealed-clues .own-clue-column {
+  background: rgba(233, 69, 96, 0.1);
+  border-left: 3px solid var(--accent);
+}
+
+.revealed-clues .own-clue-column .clue-column-header {
+  color: var(--warning);
+}
+
+.revealed-clues .own-clue-column .clue-entry {
+  color: var(--text);
+}
+
+/* Non-interactive other-player columns under own word */
+.revealed-clues .own-word-inactive {
+  background: rgba(233, 69, 96, 0.1);
+  border-left: 3px solid var(--accent);
+}
+
+.revealed-clues .own-word-inactive .clue-column-header {
+  color: var(--accent);
+}
+
+.match-section-divider {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 12px 0;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  padding: 10px 14px;
+  gap: 10px;
 }
 
-.match-row .player-name {
-  font-weight: bold;
+.match-section-divider::before,
+.match-section-divider::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--border);
 }
 
-.match-row select {
-  width: 150px;
+/* Match Buttons (on clue columns) */
+.match-btn {
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+.match-btn:hover {
+  border-color: var(--accent);
+}
+
+.match-btn.selected {
+  border-color: var(--success);
+  background: rgba(100, 255, 218, 0.1);
+}
+
+.match-btn.disabled {
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 /* Word Reveal (results) */

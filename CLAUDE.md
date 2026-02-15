@@ -54,3 +54,10 @@ All three phase timers (clue, guessing, matching) are host-configurable in lobby
 
 ### Matching Screen
 Revealed clues are displayed grouped by hidden word (in clue-phase order), with side-by-side columns per clue-giver underneath each word header. Each column shows the giver's name bolded at top and their clue words below.
+
+- **Own word first:** The current player's own hidden word and its clues are displayed at the top, separated by an "Other Players" divider from the rest. The word header shows "(Your Word)" and uses accent color. Match buttons under the own word section are non-interactive (rendered as plain divs) with red styling (`own-word-inactive` class).
+- **Own clues highlighted:** Within each word section, the current player's own clue column appears on the left with distinct red styling (`own-clue-column` class — red-tinted background, accent left border, warning-colored header).
+- **Alphabetical alignment:** Other players' clue columns are sorted alphabetically by name so they align vertically across all word sections.
+
+### Clue Cards
+Clue cards are single-use across the entire game. The `ClueDeck.usedThisRound` set is not reset between clue steps, only on "Play Again". This prevents the same clue word from appearing in any player's hand more than once per game. If the pool runs out, the overflow protection in `ClueDeck.draw()` clears the set and retries.

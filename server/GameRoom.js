@@ -134,7 +134,6 @@ class GameRoom {
 
   _startClueStep() {
     this.state.startNextClueStep();
-    this.clueDeck.resetRound();
 
     const targetPlayerId = this.state.wordOrder[this.state.wordIndex];
     const targetWord = this.state.hiddenWords.get(targetPlayerId);
