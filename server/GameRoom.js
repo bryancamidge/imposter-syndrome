@@ -28,7 +28,7 @@ class GameRoom {
       pointsMatch: DEFAULT_POINTS_MATCH,
       penaltyMisidentified: DEFAULT_PENALTY_MISIDENTIFIED,
       theme: 'animals',
-      clueList: 'general',
+      clueList: 'animals',
       clueTimer: DEFAULT_CLUE_TIMER,
       guessTimer: DEFAULT_GUESS_TIMER,
       matchTimer: DEFAULT_MATCH_TIMER,
@@ -134,6 +134,7 @@ class GameRoom {
 
   _startClueStep() {
     this.state.startNextClueStep();
+    this.clueDeck.startStep();
 
     const targetPlayerId = this.state.wordOrder[this.state.wordIndex];
     const targetWord = this.state.hiddenWords.get(targetPlayerId);
@@ -168,6 +169,8 @@ class GameRoom {
 
     const submitted = this.state.submitClue(socketId, clue);
     if (!submitted) return;
+
+    this.clueDeck.markPlayed(clue);
 
     // Broadcast the clue anonymously (no player info)
     this.io.to(this.roomCode).emit('clue:submitted', {

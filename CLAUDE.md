@@ -28,8 +28,8 @@ Server runs on `http://localhost:3000` by default (`PORT` env var to change).
 - `GameRoom.js` — Room orchestrator: wires socket events to state transitions, manages timers
 - `GameState.js` — Pure state machine (lobby → clue → guessing → matching → results), scoring logic
 - `PlayerManager.js` — Player tracking, host management, disconnect handling
-- `WordBank.js` — Themed hidden word lists (animals, food, places, objects, professions, activities)
-- `ClueDeck.js` — Clue card word pool with named lists (general, fantasy, everyday, science, emotional, adjectives, adverbs), draw mechanics
+- `WordBank.js` — Themed hidden word lists (animals, food, places, objects, professions, activities, movies)
+- `ClueDeck.js` — Theme-matched clue card pools (animals, food, places, objects, professions, activities, movies), 500 descriptive words each, draw mechanics
 - `roomCodes.js` — 4-letter room code generation
 - `constants.js` — Default config values, timer durations (all timers host-configurable, 0=disabled)
 
@@ -60,4 +60,4 @@ Revealed clues are displayed grouped by hidden word (in clue-phase order), with 
 - **Alphabetical alignment:** Other players' clue columns are sorted alphabetically by name so they align vertically across all word sections.
 
 ### Clue Cards
-Clue cards are single-use across the entire game. The `ClueDeck.usedThisRound` set is not reset between clue steps, only on "Play Again". This prevents the same clue word from appearing in any player's hand more than once per game. If the pool runs out, the overflow protection in `ClueDeck.draw()` clears the set and retries.
+Clue cards use two-tier tracking: `dealtThisStep` prevents duplicate cards within a single clue step (cleared each step), while `playedThisGame` permanently excludes cards that were actually selected by a player (cleared only on "Play Again"). Unplayed hand cards return to the pool each step, extending effective pool life. If the pool runs out, `playedThisGame` is cleared as overflow protection.

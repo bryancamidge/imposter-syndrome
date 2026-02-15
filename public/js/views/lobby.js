@@ -41,6 +41,17 @@ export function initLobby(state) {
       state.socket.emit('game:configure', { [settingKey]: value });
     });
   }
+
+  // Auto-select matching clue list when theme changes
+  document.getElementById('setting-theme').addEventListener('change', (e) => {
+    if (!state.isHost) return;
+    const clueListEl = document.getElementById('setting-clue-list');
+    const theme = e.target.value;
+    if (clueListEl.querySelector(`option[value="${theme}"]`)) {
+      clueListEl.value = theme;
+      clueListEl.dispatchEvent(new Event('change'));
+    }
+  });
 }
 
 export function updateLobby(state) {
@@ -83,7 +94,7 @@ export function populateThemes(themes) {
 
 export function updateSettings(settings) {
   document.getElementById('setting-theme').value = settings.theme || 'animals';
-  document.getElementById('setting-clue-list').value = settings.clueList || 'general';
+  document.getElementById('setting-clue-list').value = settings.clueList || 'animals';
   document.getElementById('setting-hand-size').value = settings.handSize || 5;
   document.getElementById('setting-clue-rounds').value = settings.clueRounds || 1;
   document.getElementById('setting-decoy-count').value = settings.decoyCount || 3;
