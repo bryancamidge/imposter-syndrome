@@ -31,13 +31,17 @@ export function initLobby(state) {
     'setting-clue-timer': 'clueTimer',
     'setting-guess-timer': 'guessTimer',
     'setting-match-timer': 'matchTimer',
+    'setting-allow-dupes': 'allowDuplicateMatches',
   };
 
   for (const [elementId, settingKey] of Object.entries(settingInputs)) {
     const el = document.getElementById(elementId);
     el.addEventListener('change', () => {
       if (!state.isHost) return;
-      const value = el.type === 'number' ? parseInt(el.value) : el.value;
+      let value;
+      if (el.type === 'checkbox') value = el.checked;
+      else if (el.type === 'number') value = parseInt(el.value);
+      else value = el.value;
       state.socket.emit('game:configure', { [settingKey]: value });
     });
   }
@@ -104,4 +108,5 @@ export function updateSettings(settings) {
   document.getElementById('setting-clue-timer').value = settings.clueTimer ?? 60;
   document.getElementById('setting-guess-timer').value = settings.guessTimer ?? 90;
   document.getElementById('setting-match-timer').value = settings.matchTimer ?? 120;
+  document.getElementById('setting-allow-dupes').checked = !!settings.allowDuplicateMatches;
 }

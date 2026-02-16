@@ -87,6 +87,10 @@
           <label for="setting-match-timer">Match Timer (sec, 0=off)</label>
           <input id="setting-match-timer" type="number" min="0" max="300" value="120">
         </div>
+        <div class="setting-row">
+          <label for="setting-allow-dupes">Allow Duplicate Matches</label>
+          <input id="setting-allow-dupes" type="checkbox">
+        </div>
       </div>
       <h3>Players <span id="player-count"></span></h3>
       <ul id="player-list" class="player-list"></ul>
@@ -141,10 +145,10 @@
         <thead>
           <tr>
             <th>Player</th>
-            <th>Self Guess</th>
-            <th>Matches</th>
-            <th>Penalties</th>
-            <th>Round</th>
+            <th><span class="th-full">Self Guess</span><span class="th-short">Self</span></th>
+            <th><span class="th-full">Matches</span><span class="th-short">Match</span></th>
+            <th><span class="th-full">Penalties</span><span class="th-short">Pen.</span></th>
+            <th><span class="th-full">Round</span><span class="th-short">Rnd</span></th>
             <th>Total</th>
             <th>Time</th>
           </tr>

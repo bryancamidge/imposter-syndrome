@@ -10,6 +10,8 @@ module.exports = {
   DEFAULT_POINTS_MATCH: 1,
   DEFAULT_PENALTY_MISIDENTIFIED: -1,
 
+  DEFAULT_ALLOW_DUPLICATE_MATCHES: false,
+
   // Timer defaults (seconds, 0 = disabled)
   DEFAULT_CLUE_TIMER: 60,
   DEFAULT_GUESS_TIMER: 90,

@@ -1,7 +1,8 @@
 import { renderSubmissionStatus, startTimer, stopTimer } from '../ui-utils.js';
 
-let matchSelections = {};  // { playerId: word }
+let matchSelections = {};  // { word: playerId }
 let expectedCount = 0;
+let allowDuplicateMatches = false;
 
 export function initMatching(state) {
   const btnSubmit = document.getElementById('btn-submit-match');
@@ -15,6 +16,7 @@ export function initMatching(state) {
 
 export function showMatchingPhase(state, data) {
   matchSelections = {};
+  allowDuplicateMatches = !!data.allowDuplicateMatches;
 
   // Build a set of other player IDs (valid match targets)
   const otherPlayers = data.players.filter(p => p.id !== state.playerId);
@@ -157,42 +159,41 @@ export function showMatchingPhase(state, data) {
 }
 
 function handleMatchClick(playerId, word) {
-  // If this player was already assigned to a different word, clear that
-  const prevWord = Object.entries(matchSelections).find(
-    ([pid, w]) => pid === playerId && w !== word
-  );
-  if (prevWord) {
-    delete matchSelections[playerId];
-    // Deselect the old button
+  // If a different player was already selected for this word, clear that
+  const prevPlayer = matchSelections[word];
+  if (prevPlayer && prevPlayer !== playerId) {
     const oldBtn = document.querySelector(
-      `.match-btn[data-player-id="${playerId}"][data-word="${prevWord[1]}"]`
+      `.match-btn[data-player-id="${prevPlayer}"][data-word="${word}"]`
     );
     if (oldBtn) oldBtn.classList.remove('selected');
+    delete matchSelections[word];
   }
 
-  // If a different player was already selected for this word, clear that
-  const prevPlayer = Object.entries(matchSelections).find(
-    ([pid, w]) => w === word && pid !== playerId
-  );
-  if (prevPlayer) {
-    delete matchSelections[prevPlayer[0]];
-    const oldBtn = document.querySelector(
-      `.match-btn[data-player-id="${prevPlayer[0]}"][data-word="${word}"]`
-    );
-    if (oldBtn) oldBtn.classList.remove('selected');
+  // If duplicates not allowed and this player is already assigned to a different word, clear that
+  if (!allowDuplicateMatches) {
+    for (const [w, pid] of Object.entries(matchSelections)) {
+      if (pid === playerId && w !== word) {
+        const oldBtn = document.querySelector(
+          `.match-btn[data-player-id="${playerId}"][data-word="${w}"]`
+        );
+        if (oldBtn) oldBtn.classList.remove('selected');
+        delete matchSelections[w];
+        break;
+      }
+    }
   }
 
   // Toggle current selection
   const btn = document.querySelector(
     `.match-btn[data-player-id="${playerId}"][data-word="${word}"]`
   );
-  if (matchSelections[playerId] === word) {
+  if (matchSelections[word] === playerId) {
     // Deselect
-    delete matchSelections[playerId];
+    delete matchSelections[word];
     if (btn) btn.classList.remove('selected');
   } else {
     // Select
-    matchSelections[playerId] = word;
+    matchSelections[word] = playerId;
     if (btn) btn.classList.add('selected');
   }
 

@@ -145,19 +145,26 @@ class GameState {
   }
 
   getCluesForPlayer(playerId, totalRounds) {
-    // Collect all anonymous clues given about this player's word
+    // Collect clues given about this player's word, separating blind clues
     const ownerIndex = this.wordOrder.indexOf(playerId);
-    if (ownerIndex === -1) return [];
+    if (ownerIndex === -1) return { clues: [], blindClues: [] };
 
-    const roundClues = [];
+    const clues = [];
+    const blindClues = [];
     for (let r = 0; r < totalRounds; r++) {
       const slotKey = `${r}-${ownerIndex}`;
       const submissions = this.clues.get(slotKey);
       if (submissions) {
-        roundClues.push(Array.from(submissions.values()));
+        for (const [giverId, clue] of submissions) {
+          if (giverId === playerId) {
+            blindClues.push(clue);
+          } else {
+            clues.push(clue);
+          }
+        }
       }
     }
-    return roundClues;
+    return { clues, blindClues };
   }
 
   getAllCluesRevealed(players, totalRounds) {
@@ -218,8 +225,9 @@ class GameState {
     }
 
     // 2. Match scoring + misidentification penalties
+    // matchMap is keyed by word: { guessedWord: targetPlayerId }
     for (const [matcherId, matchMap] of this.matches) {
-      for (const [targetPlayerId, guessedWord] of Object.entries(matchMap)) {
+      for (const [guessedWord, targetPlayerId] of Object.entries(matchMap)) {
         const actualWord = this.hiddenWords.get(targetPlayerId);
         const correct = guessedWord === actualWord;
         results.matchResults.push({

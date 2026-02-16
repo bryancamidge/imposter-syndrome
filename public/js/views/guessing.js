@@ -21,15 +21,30 @@ export function showGuessingPhase(state, data) {
   cluesContainer.innerHTML = '<h4>Clues about your word:</h4>';
   const clueList = document.createElement('div');
   clueList.className = 'clue-list';
-  data.cluesForYou.forEach((roundClues, i) => {
-    roundClues.forEach(clue => {
-      const span = document.createElement('span');
-      span.className = 'clue-card';
-      span.textContent = clue;
-      clueList.appendChild(span);
-    });
+  data.cluesForYou.forEach(clue => {
+    const span = document.createElement('span');
+    span.className = 'clue-card';
+    span.textContent = clue;
+    clueList.appendChild(span);
   });
   cluesContainer.appendChild(clueList);
+
+  // Display blind clues (clues the player gave without seeing their word)
+  if (data.blindClues && data.blindClues.length > 0) {
+    const blindSection = document.createElement('div');
+    blindSection.className = 'blind-clues';
+    blindSection.innerHTML = '<h4>Your blind clues:</h4>';
+    const blindList = document.createElement('div');
+    blindList.className = 'clue-list';
+    data.blindClues.forEach(clue => {
+      const span = document.createElement('span');
+      span.className = 'clue-card blind';
+      span.textContent = clue;
+      blindList.appendChild(span);
+    });
+    blindSection.appendChild(blindList);
+    cluesContainer.appendChild(blindSection);
+  }
 
   // Display word options
   const optionsContainer = document.getElementById('guess-options');

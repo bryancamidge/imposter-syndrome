@@ -6,6 +6,7 @@ const {
   MIN_PLAYERS, MAX_PLAYERS,
   DEFAULT_HAND_SIZE, DEFAULT_CLUE_ROUNDS, DEFAULT_DECOY_COUNT,
   DEFAULT_POINTS_SELF_GUESS, DEFAULT_POINTS_MATCH, DEFAULT_PENALTY_MISIDENTIFIED,
+  DEFAULT_ALLOW_DUPLICATE_MATCHES,
   DEFAULT_CLUE_TIMER, DEFAULT_GUESS_TIMER, DEFAULT_MATCH_TIMER,
   DISCONNECT_GRACE_SECONDS,
 } = require('./constants');
@@ -29,6 +30,7 @@ class GameRoom {
       penaltyMisidentified: DEFAULT_PENALTY_MISIDENTIFIED,
       theme: 'animals',
       clueList: 'animals',
+      allowDuplicateMatches: DEFAULT_ALLOW_DUPLICATE_MATCHES,
       clueTimer: DEFAULT_CLUE_TIMER,
       guessTimer: DEFAULT_GUESS_TIMER,
       matchTimer: DEFAULT_MATCH_TIMER,
@@ -91,6 +93,7 @@ class GameRoom {
       this.settings.clueList = data.clueList;
       this.clueDeck.setList(data.clueList);
     }
+    if (data.allowDuplicateMatches != null) this.settings.allowDuplicateMatches = !!data.allowDuplicateMatches;
     if (data.clueTimer != null) this.settings.clueTimer = Math.max(0, Math.min(300, parseInt(data.clueTimer)));
     if (data.guessTimer != null) this.settings.guessTimer = Math.max(0, Math.min(300, parseInt(data.guessTimer)));
     if (data.matchTimer != null) this.settings.matchTimer = Math.max(0, Math.min(300, parseInt(data.matchTimer)));
@@ -204,7 +207,7 @@ class GameRoom {
     const activePlayers = this.players.getAll();
 
     for (const p of activePlayers) {
-      const cluesForPlayer = this.state.getCluesForPlayer(p.id, this.settings.clueRounds);
+      const { clues, blindClues } = this.state.getCluesForPlayer(p.id, this.settings.clueRounds);
       const actualWord = this.state.hiddenWords.get(p.id);
 
       // Build options: actual word + decoys, shuffled
@@ -212,7 +215,8 @@ class GameRoom {
 
       this.io.to(p.id).emit('guess:start', {
         options,
-        cluesForYou: cluesForPlayer,
+        cluesForYou: clues,
+        blindClues,
         timer: this.settings.guessTimer,
       });
     }
@@ -261,6 +265,7 @@ class GameRoom {
         hiddenWords: otherWords,
         players: playerList,
         revealedClues,
+        allowDuplicateMatches: this.settings.allowDuplicateMatches,
         timer: this.settings.matchTimer,
       });
     }

@@ -405,6 +405,22 @@ input[type="number"] {
   gap: 6px;
 }
 
+.blind-clues {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--text-dim);
+}
+
+.blind-clues h4 {
+  margin-bottom: 8px;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.clue-card.blind {
+  opacity: 0.55;
+}
+
 /* Word Options (guessing phase) */
 .word-options {
   display: flex;
@@ -617,6 +633,9 @@ input[type="number"] {
   font-weight: bold;
 }
 
+/* Header abbreviation toggle — full by default, short hidden */
+.th-short { display: none; }
+
 /* Responsive */
 @media (max-width: 480px) {
   body { padding: 10px; }
@@ -628,4 +647,27 @@ input[type="number"] {
   .setting-row { flex-direction: column; gap: 4px; align-items: flex-start; }
   .settings-panel select,
   .settings-panel input[type="number"] { width: 100%; }
+
+  /* Results tables — tighter on mobile */
+  .result-table th,
+  .result-table td,
+  .scoreboard th,
+  .scoreboard td {
+    padding: 6px 4px;
+    font-size: 0.75rem;
+  }
+  .result-table th,
+  .scoreboard th {
+    font-size: 0.7rem;
+  }
+
+  /* Abbreviated column headers */
+  .th-full { display: none; }
+  .th-short { display: inline; }
+
+  /* Horizontal scroll fallback */
+  .breakdown,
+  .scoreboard {
+    overflow-x: auto;
+  }
 }
