@@ -7,7 +7,14 @@ const GameRoom = require('./GameRoom');
 
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer);
+const io = new Server(httpServer, {
+  pingInterval: 25000,
+  pingTimeout: 180000,
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST'],
+  },
+});
 
 // Serve static frontend
 app.use(express.static(path.join(__dirname, '..', 'public')));
@@ -33,6 +40,21 @@ io.on('connection', (socket) => {
       return;
     }
     room.addPlayer(socket, playerName, false);
+  });
+
+  socket.on('room:rejoin', ({ roomCode, playerName }) => {
+    const code = roomCode.toUpperCase().trim();
+    const room = rooms.get(code);
+    if (!room) {
+      socket.emit('room:error', { message: 'Room not found' });
+      return;
+    }
+    const disconnected = room.players.findDisconnectedByName(playerName);
+    if (!disconnected) {
+      socket.emit('room:error', { message: 'No disconnected player found with that name' });
+      return;
+    }
+    room.reconnectPlayer(disconnected.id, socket);
   });
 
   socket.on('disconnect', () => {

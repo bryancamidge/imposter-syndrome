@@ -61,6 +61,24 @@ class PlayerManager {
     return connected[0].id;
   }
 
+  updateSocketId(oldId, newId) {
+    const player = this.players.get(oldId);
+    if (!player) return null;
+    this.players.delete(oldId);
+    player.id = newId;
+    player.connected = true;
+    this.players.set(newId, player);
+    return player;
+  }
+
+  findDisconnectedByName(name) {
+    const trimmed = name.trim().toLowerCase();
+    for (const p of this.players.values()) {
+      if (!p.connected && p.name.toLowerCase() === trimmed) return p;
+    }
+    return null;
+  }
+
   markDisconnected(socketId) {
     const p = this.players.get(socketId);
     if (p) p.connected = false;

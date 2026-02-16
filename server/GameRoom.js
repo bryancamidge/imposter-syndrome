@@ -21,6 +21,9 @@ class GameRoom {
     this.clueDeck = new ClueDeck();
     this.timerId = null;
 
+    this.disconnectTimers = new Map(); // socketId -> timeout handle
+    this.lastResultsPayload = null;   // cached results for reconnecting players
+
     this.settings = {
       handSize: DEFAULT_HAND_SIZE,
       clueRounds: DEFAULT_CLUE_ROUNDS,
@@ -39,6 +42,12 @@ class GameRoom {
 
   addPlayer(socket, name, isHost) {
     if (this.state.currentPhase !== GameState.PHASES.LOBBY) {
+      // Allow rejoin if a disconnected player has this name
+      const disconnected = this.players.findDisconnectedByName(name);
+      if (disconnected) {
+        this.reconnectPlayer(disconnected.id, socket);
+        return;
+      }
       socket.emit('room:error', { message: 'Game already in progress' });
       return;
     }
@@ -303,12 +312,14 @@ class GameRoom {
       wordReveal[playerId] = { playerName: player ? player.name : 'Unknown', word };
     }
 
-    this.io.to(this.roomCode).emit('game:results', {
+    this.lastResultsPayload = {
       ...results,
       wordReveal,
       scoreChanges: Object.fromEntries(results.scoreChanges),
       finalScores: results.finalScores,
-    });
+    };
+
+    this.io.to(this.roomCode).emit('game:results', this.lastResultsPayload);
   }
 
   _handlePlayAgain(socketId) {
@@ -316,8 +327,10 @@ class GameRoom {
     if (this.state.currentPhase !== GameState.PHASES.RESULTS) return;
 
     this.state.resetForNewGame();
+    this.state.resetScores();
     this.wordBank.reset();
     this.clueDeck.resetRound();
+    this.lastResultsPayload = null;
 
     this.io.to(this.roomCode).emit('phase:lobby', {
       players: this.players.toClientArray(),
@@ -326,15 +339,132 @@ class GameRoom {
   }
 
   handleDisconnect(socketId) {
-    const wasHost = this.players.isHost(socketId);
     this.players.markDisconnected(socketId);
 
-    const newHostId = wasHost ? this.players.promoteNewHost() : null;
+    // Start grace period — only broadcast removal if they don't reconnect in time
+    const timer = setTimeout(() => {
+      this.disconnectTimers.delete(socketId);
+      const wasHost = this.players.isHost(socketId);
+      if (wasHost) {
+        // Remove host flag before promoting
+        const p = this.players.get(socketId);
+        if (p) p.isHost = false;
+      }
+      const newHostId = wasHost ? this.players.promoteNewHost() : null;
 
-    this.io.to(this.roomCode).emit('room:playerLeft', {
-      playerId: socketId,
-      newHostId,
+      this.io.to(this.roomCode).emit('room:playerLeft', {
+        playerId: socketId,
+        newHostId,
+      });
+    }, DISCONNECT_GRACE_SECONDS * 1000);
+
+    this.disconnectTimers.set(socketId, timer);
+  }
+
+  reconnectPlayer(oldSocketId, newSocket) {
+    // Cancel grace period timer
+    const timer = this.disconnectTimers.get(oldSocketId);
+    if (timer) {
+      clearTimeout(timer);
+      this.disconnectTimers.delete(oldSocketId);
+    }
+
+    // Migrate player record to new socket ID
+    const player = this.players.updateSocketId(oldSocketId, newSocket.id);
+    if (!player) return false;
+
+    // Migrate game state references
+    this.state.updatePlayerId(oldSocketId, newSocket.id);
+
+    // Join room and register events
+    newSocket.join(this.roomCode);
+    this._registerSocketEvents(newSocket);
+
+    // Send current game state based on phase
+    this._sendReconnectState(newSocket, player);
+
+    // Notify others that player reconnected with new socket ID
+    newSocket.to(this.roomCode).emit('room:playerReconnected', {
+      oldPlayerId: oldSocketId,
+      playerId: newSocket.id,
+      playerName: player.name,
     });
+
+    return true;
+  }
+
+  _sendReconnectState(socket, player) {
+    const phase = this.state.currentPhase;
+
+    if (phase === GameState.PHASES.LOBBY) {
+      socket.emit('room:joined', {
+        roomCode: this.roomCode,
+        playerId: socket.id,
+        players: this.players.toClientArray(),
+        hostId: this.players.getHostId(),
+        settings: this.settings,
+        themes: this.wordBank.getThemes(),
+      });
+      return;
+    }
+
+    // For all in-game phases, first confirm they're in a game
+    socket.emit('room:joined', {
+      roomCode: this.roomCode,
+      playerId: socket.id,
+      players: this.players.toClientArray(),
+      hostId: this.players.getHostId(),
+      settings: this.settings,
+      themes: this.wordBank.getThemes(),
+    });
+
+    if (phase === GameState.PHASES.CLUE) {
+      const targetPlayerId = this.state.wordOrder[this.state.wordIndex];
+      const targetWord = this.state.hiddenWords.get(targetPlayerId);
+      const isOwner = socket.id === targetPlayerId;
+      const hand = this.clueDeck.draw(this.settings.handSize);
+
+      socket.emit('clue:roundStart', {
+        wordSlot: this.state.wordIndex,
+        totalSlots: this.state.wordOrder.length,
+        roundNum: this.state.round + 1,
+        totalRounds: this.settings.clueRounds,
+        word: isOwner ? null : targetWord,
+        hand,
+        isYourWord: isOwner,
+        timer: 0, // Don't send timer — they're rejoining mid-step
+      });
+    } else if (phase === GameState.PHASES.GUESSING) {
+      const { clues, blindClues } = this.state.getCluesForPlayer(socket.id, this.settings.clueRounds);
+      const actualWord = this.state.hiddenWords.get(socket.id);
+      const options = [actualWord, ...this.decoyWords].sort(() => Math.random() - 0.5);
+
+      socket.emit('guess:start', {
+        options,
+        cluesForYou: clues,
+        blindClues,
+        timer: 0,
+      });
+    } else if (phase === GameState.PHASES.MATCHING) {
+      const activePlayers = this.players.getAll();
+      const revealedClues = this.state.getAllCluesRevealed(activePlayers, this.settings.clueRounds);
+      const playerList = activePlayers.map(p => ({ id: p.id, name: p.name }));
+      const allHiddenWords = Array.from(this.state.hiddenWords.entries());
+      const otherWords = allHiddenWords
+        .filter(([pid]) => pid !== socket.id)
+        .map(([, word]) => word)
+        .sort(() => Math.random() - 0.5);
+
+      socket.emit('match:start', {
+        hiddenWords: otherWords,
+        players: playerList,
+        revealedClues,
+        allowDuplicateMatches: this.settings.allowDuplicateMatches,
+        timer: 0,
+      });
+    } else if (phase === GameState.PHASES.RESULTS && this.lastResultsPayload) {
+      socket.emit('game:results', this.lastResultsPayload);
+    }
   }
 
   hasPlayer(socketId) {

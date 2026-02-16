@@ -6,11 +6,17 @@ import { initMatching } from './views/matching.js';
 import { initResults } from './views/results.js';
 import { registerSocketHandlers } from './socket-handlers.js';
 
-const socket = io();
+const socket = io({
+  reconnection: true,
+  reconnectionAttempts: 20,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+});
 
 const state = {
   socket,
   playerId: null,
+  playerName: null,
   roomCode: null,
   isHost: false,
   hostId: null,

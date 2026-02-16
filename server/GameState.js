@@ -285,6 +285,44 @@ class GameState {
     return results;
   }
 
+  updatePlayerId(oldId, newId) {
+    // Migrate all state keyed by player/socket ID
+    if (this.hiddenWords.has(oldId)) {
+      this.hiddenWords.set(newId, this.hiddenWords.get(oldId));
+      this.hiddenWords.delete(oldId);
+    }
+    this.wordOrder = this.wordOrder.map(id => id === oldId ? newId : id);
+
+    // Migrate clue submissions
+    for (const [slotKey, submissions] of this.clues) {
+      if (submissions.has(oldId)) {
+        submissions.set(newId, submissions.get(oldId));
+        submissions.delete(oldId);
+      }
+    }
+    if (this.currentClueSubmissions.has(oldId)) {
+      this.currentClueSubmissions.set(newId, this.currentClueSubmissions.get(oldId));
+      this.currentClueSubmissions.delete(oldId);
+    }
+
+    if (this.guesses.has(oldId)) {
+      this.guesses.set(newId, this.guesses.get(oldId));
+      this.guesses.delete(oldId);
+    }
+    if (this.matches.has(oldId)) {
+      this.matches.set(newId, this.matches.get(oldId));
+      this.matches.delete(oldId);
+    }
+    if (this.scores.has(oldId)) {
+      this.scores.set(newId, this.scores.get(oldId));
+      this.scores.delete(oldId);
+    }
+    if (this.playerSubmitTimes.has(oldId)) {
+      this.playerSubmitTimes.set(newId, this.playerSubmitTimes.get(oldId));
+      this.playerSubmitTimes.delete(oldId);
+    }
+  }
+
   resetForNewGame() {
     this.phase = PHASES.LOBBY;
     this.round = 0;
@@ -296,7 +334,6 @@ class GameState {
     this.guesses.clear();
     this.matches.clear();
     this.playerSubmitTimes.clear();
-    // Keep scores for cumulative tracking
   }
 
   resetScores() {

@@ -47,6 +47,32 @@
   display: none;
 }
 
+/* Connection banner */
+.connection-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  background: var(--warning);
+  color: #111;
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.connection-banner.hidden {
+  display: none;
+}
+
+.connection-banner.error {
+  background: var(--error);
+  color: white;
+  animation: none;
+}
+
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: var(--bg);
