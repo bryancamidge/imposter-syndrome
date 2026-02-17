@@ -29,7 +29,7 @@ Server runs on `http://localhost:3000` by default (`PORT` env var to change).
 - `GameState.js` — Pure state machine (lobby → clue → guessing → matching → results), scoring logic, player ID migration
 - `PlayerManager.js` — Player tracking, host management, disconnect handling, socket ID migration
 - `WordBank.js` — Themed hidden word lists (animals, food, places, objects, professions, activities, movies)
-- `ClueDeck.js` — Theme-matched clue card pools (animals, food, places, objects, professions, activities, movies), 500 descriptive words each, draw mechanics
+- `ClueDeck.js` — Theme-matched clue card pools (animals, food, places, objects, professions, activities, movies, emojis), 300-500 items each, draw mechanics
 - `roomCodes.js` — 4-letter room code generation
 - `constants.js` — Default config values, timer durations (all timers host-configurable, 0=disabled)
 
@@ -78,6 +78,9 @@ Socket.io configured with 3-minute ping timeout and CORS `origin: "*"` for onlin
 - Fallback: `addPlayer()` also checks for disconnected players by name when game is in progress, so manually clicking "Join Game" with the same name+code also triggers rejoin.
 - `room:playerReconnected` event broadcasts the old→new player ID mapping so other clients update their local state.
 - Connection status banner (`#connection-banner`) shows "Reconnecting..." overlay during disconnects.
+
+### Results Screen
+Layout order: Results heading → Scoreboard (at top) → Word Reveal → Self-Guess Breakdown → Match Breakdown → Play Again button (host only). Winner (first scoreboard row) highlighted in accent color.
 
 ### Scoring
 Scores reset to 0 on "Play Again" via `GameState.resetScores()`. Each game is standalone — scores do not accumulate across games.
