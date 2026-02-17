@@ -270,12 +270,18 @@ class GameRoom {
         .map(([, word]) => word)
         .sort(() => Math.random() - 0.5);
 
+      const guessedWord = this.state.guesses.get(p.id);
+      const guessCorrect = guessedWord === ownWord;
+
       this.io.to(p.id).emit('match:start', {
         hiddenWords: otherWords,
         players: playerList,
         revealedClues,
         allowDuplicateMatches: this.settings.allowDuplicateMatches,
         timer: this.settings.matchTimer,
+        guessedWord,
+        guessCorrect,
+        ownWord,
       });
     }
 
@@ -450,10 +456,13 @@ class GameRoom {
       const revealedClues = this.state.getAllCluesRevealed(activePlayers, this.settings.clueRounds);
       const playerList = activePlayers.map(p => ({ id: p.id, name: p.name }));
       const allHiddenWords = Array.from(this.state.hiddenWords.entries());
+      const ownWord = this.state.hiddenWords.get(socket.id);
       const otherWords = allHiddenWords
         .filter(([pid]) => pid !== socket.id)
         .map(([, word]) => word)
         .sort(() => Math.random() - 0.5);
+      const guessedWord = this.state.guesses.get(socket.id);
+      const guessCorrect = guessedWord === ownWord;
 
       socket.emit('match:start', {
         hiddenWords: otherWords,
@@ -461,6 +470,9 @@ class GameRoom {
         revealedClues,
         allowDuplicateMatches: this.settings.allowDuplicateMatches,
         timer: 0,
+        guessedWord,
+        guessCorrect,
+        ownWord,
       });
     } else if (phase === GameState.PHASES.RESULTS && this.lastResultsPayload) {
       socket.emit('game:results', this.lastResultsPayload);

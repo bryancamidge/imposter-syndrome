@@ -62,6 +62,16 @@ export function showMatchingPhase(state, data) {
   const cluesContainer = document.getElementById('revealed-clues');
   cluesContainer.innerHTML = '';
 
+  // Show guess result banner
+  const guessBanner = document.createElement('div');
+  guessBanner.className = 'guess-result-banner ' + (data.guessCorrect ? 'correct' : 'incorrect');
+  if (data.guessCorrect) {
+    guessBanner.innerHTML = `You guessed <strong>${data.guessedWord}</strong> — Correct!`;
+  } else {
+    guessBanner.innerHTML = `You guessed <strong>${data.guessedWord || 'nothing'}</strong> — Wrong! Your word was <strong>${data.ownWord}</strong>`;
+  }
+  cluesContainer.appendChild(guessBanner);
+
   // Helper to render a word section
   const renderWordSection = (word, givers, isOwn) => {
     const section = document.createElement('div');

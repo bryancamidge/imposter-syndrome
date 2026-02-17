@@ -553,6 +553,27 @@ input[type="number"] {
   border-top: 1px solid var(--border);
 }
 
+/* Guess Result Banner */
+.guess-result-banner {
+  text-align: center;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  margin-bottom: 16px;
+}
+
+.guess-result-banner.correct {
+  background: rgba(78, 205, 196, 0.15);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+
+.guess-result-banner.incorrect {
+  background: rgba(233, 69, 96, 0.15);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+
 /* Match Buttons (on clue columns) */
 .match-btn {
   cursor: pointer;
