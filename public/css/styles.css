@@ -683,6 +683,50 @@ input[type="number"] {
 /* Header abbreviation toggle — full by default, short hidden */
 .th-short { display: none; }
 
+/* Quit Button */
+.btn-quit {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 800;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  background: var(--bg-card);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+.btn-quit:hover { color: var(--text); border-color: var(--text-dim); }
+.btn-quit.hidden { display: none; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 950;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.hidden { display: none; }
+.modal-dialog {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 260px;
+}
+.modal-title {
+  font-size: 1.1rem;
+}
+
 /* Responsive */
 @media (max-width: 480px) {
   body { padding: 10px; }

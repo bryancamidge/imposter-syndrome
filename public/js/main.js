@@ -5,6 +5,7 @@ import { initGuessing } from './views/guessing.js';
 import { initMatching } from './views/matching.js';
 import { initResults } from './views/results.js';
 import { registerSocketHandlers } from './socket-handlers.js';
+import { showView } from './ui-utils.js';
 
 const socket = io({
   reconnection: true,
@@ -34,6 +35,64 @@ initGuessing(state);
 initMatching(state);
 initResults(state);
 registerSocketHandlers(state);
+initQuitButton(state);
+
+function initQuitButton(state) {
+  const quitBtn = document.getElementById('btn-quit');
+  const modal = document.getElementById('quit-modal');
+  const modalButtons = document.getElementById('quit-modal-buttons');
+
+  function closeModal() { modal.classList.add('hidden'); }
+
+  quitBtn.addEventListener('click', () => {
+    modalButtons.innerHTML = '';
+
+    const activeView = document.querySelector('.view.active')?.id;
+    const inGamePhase = ['view-clue', 'view-guessing', 'view-matching'].includes(activeView);
+
+    // Abort Game — host only, mid-game only
+    if (state.isHost && inGamePhase) {
+      const abortBtn = document.createElement('button');
+      abortBtn.className = 'btn btn-secondary';
+      abortBtn.textContent = 'Abort Game';
+      abortBtn.addEventListener('click', () => {
+        state.socket.emit('game:abort');
+        closeModal();
+      });
+      modalButtons.appendChild(abortBtn);
+    }
+
+    // Leave Room — always available
+    const leaveBtn = document.createElement('button');
+    leaveBtn.className = 'btn btn-primary';
+    leaveBtn.textContent = 'Leave Room';
+    leaveBtn.addEventListener('click', () => {
+      state.socket.emit('room:leave');
+      sessionStorage.removeItem('rejoin');
+      state.roomCode = null;
+      state.playerName = null;
+      state.playerId = null;
+      state.isHost = false;
+      closeModal();
+      showView('view-welcome');
+    });
+    modalButtons.appendChild(leaveBtn);
+
+    // Cancel
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn btn-small';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.addEventListener('click', closeModal);
+    modalButtons.appendChild(cancelBtn);
+
+    modal.classList.remove('hidden');
+  });
+
+  // Click backdrop to dismiss
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+}
 
 // Splash screen: animate 0%→100% over 3 seconds then hide
 const splashEl = document.getElementById('splash');

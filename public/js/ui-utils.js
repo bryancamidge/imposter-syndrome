@@ -1,6 +1,8 @@
 export function showView(viewId) {
   document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
   document.getElementById(viewId).classList.add('active');
+  const quitBtn = document.getElementById('btn-quit');
+  if (quitBtn) quitBtn.classList.toggle('hidden', viewId === 'view-welcome');
 }
 
 export function renderPlayerList(containerId, players, hostId) {

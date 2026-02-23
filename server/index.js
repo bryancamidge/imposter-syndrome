@@ -57,6 +57,20 @@ io.on('connection', (socket) => {
     room.reconnectPlayer(disconnected.id, socket);
   });
 
+  socket.on('room:leave', () => {
+    for (const [code, room] of rooms) {
+      if (room.hasPlayer(socket.id)) {
+        room.leavePlayer(socket.id);
+        socket.leave(code);
+        if (room.isEmpty()) {
+          rooms.delete(code);
+          console.log(`Room ${code} deleted (empty after leave)`);
+        }
+        break;
+      }
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log(`Disconnected: ${socket.id}`);
     for (const [code, room] of rooms) {

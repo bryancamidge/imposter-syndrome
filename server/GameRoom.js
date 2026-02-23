@@ -85,6 +85,7 @@ class GameRoom {
     socket.on('guess:submit', (data) => this._handleGuessSubmit(socket.id, data));
     socket.on('match:submit', (data) => this._handleMatchSubmit(socket.id, data));
     socket.on('game:playAgain', () => this._handlePlayAgain(socket.id));
+    socket.on('game:abort', () => this._handleAbort(socket.id));
   }
 
   _handleConfigure(socketId, data) {
@@ -332,6 +333,61 @@ class GameRoom {
     if (!this.players.isHost(socketId)) return;
     if (this.state.currentPhase !== GameState.PHASES.RESULTS) return;
 
+    this.state.resetForNewGame();
+    this.state.resetScores();
+    this.wordBank.reset();
+    this.clueDeck.resetRound();
+    this.lastResultsPayload = null;
+
+    this.io.to(this.roomCode).emit('phase:lobby', {
+      players: this.players.toClientArray(),
+      settings: this.settings,
+    });
+  }
+
+  leavePlayer(socketId) {
+    // Cancel any pending disconnect grace period
+    const timer = this.disconnectTimers.get(socketId);
+    if (timer) {
+      clearTimeout(timer);
+      this.disconnectTimers.delete(socketId);
+    }
+
+    const wasHost = this.players.isHost(socketId);
+    this.players.remove(socketId);
+    const newHostId = wasHost ? this.players.promoteNewHost() : null;
+
+    this.io.to(this.roomCode).emit('room:playerLeft', {
+      playerId: socketId,
+      newHostId,
+    });
+
+    // If mid-game, check if remaining players have all submitted and can advance
+    this._checkPhaseAdvance();
+  }
+
+  _checkPhaseAdvance() {
+    const count = this.players.count();
+    if (count === 0) return;
+    const phase = this.state.currentPhase;
+    if (phase === GameState.PHASES.CLUE && this.state.allCluesIn(count)) {
+      this._clearTimer();
+      this._finishClueStep();
+    } else if (phase === GameState.PHASES.GUESSING && this.state.allGuessesIn(count)) {
+      this._clearTimer();
+      this._finishGuessingPhase();
+    } else if (phase === GameState.PHASES.MATCHING && this.state.allMatchesIn(count)) {
+      this._clearTimer();
+      this._finishMatchingPhase();
+    }
+  }
+
+  _handleAbort(socketId) {
+    if (!this.players.isHost(socketId)) return;
+    const phase = this.state.currentPhase;
+    if (phase === GameState.PHASES.LOBBY || phase === GameState.PHASES.RESULTS) return;
+
+    this._clearTimer();
     this.state.resetForNewGame();
     this.state.resetScores();
     this.wordBank.reset();
